@@ -5,14 +5,13 @@ export class Formatter {
     const context = ctx();
 
     if (info.level === "error" || info instanceof Error) {
-      const { name, stack, message, ...rest } = getError(info);
-
-      Object.assign(info, { name, stack, message, ...rest });
+      info = Object.assign({}, getError(info));
     }
 
     if (context && context.requestId) {
       info.requestId = context.requestId;
     }
+
     if (typeof info.message === "object") {
       Object.assign(info, info.message);
       delete info.message;
