@@ -3,23 +3,22 @@ import { ctx } from "./storage";
 export class Formatter {
   transform(info, _opts) {
     const context = ctx();
-    const logObj: any = {};
 
     if (info.level === "error" || info instanceof Error) {
       const { name, stack, message, ...rest } = getError(info);
-      Object.assign(logObj, { name, stack, message, ...rest });
+
+      Object.assign(info, { name, stack, message, ...rest });
     }
 
     if (context && context.requestId) {
-      logObj.requestId = context.requestId;
+      info.requestId = context.requestId;
     }
-    if (typeof info === "object") {
-      Object.assign(logObj, info);
-    } else {
-      logObj.message = info;
+    if (typeof info.message === "object") {
+      Object.assign(info, info.message);
+      delete info.message;
     }
 
-    return logObj;
+    return info;
   }
 }
 
