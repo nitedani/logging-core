@@ -1,0 +1,44 @@
+{
+  "name": "@nitedani/logging-core",
+  "version": "0.0.1",
+  "description": "",
+  "main": "lib/cjs/index.js",
+  "author": {
+    "email": "nitedani@gmail.com",
+    "name": "Horváth Dániel"
+  },
+  "keywords": [
+    "socket.io",
+    "socket",
+    "react",
+    "hooks"
+  ],
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nitedani/logging-core"
+  },
+  "typings": "./lib/cjs/index.d.ts",
+  "scripts": {
+    "build": "npm run build:esm && npm run  build:cjs",
+    "build:esm": "tsc",
+    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
+    "prepare": "install-peers"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.8",
+    "install-peers-cli": "^2.2.0",
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "@newrelic/native-metrics": "^7.1.0",
+    "cuid": "^2.1.8",
+    "systeminformation": "^5.10.2",
+    "winston": "^3.4.0",
+    "winston-loki": "^6.0.3"
+  },
+  "peerDependencies": {},
+  "files": [
+    "/lib"
+  ]
+}
