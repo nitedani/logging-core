@@ -35,11 +35,18 @@ export const getError = (error: any) => {
 };
 
 export const getInfo = (req, res, error?) => {
-  const { method, url } = req;
+  const { method, originalUrl, body } = req;
   const { statusCode } = res;
-
   const bytesWritten = req.socket.bytesWritten - req.socket._prevBytesWritten;
-  const message: string = `HTTP request served - ${statusCode} - ${method} - ${url}`;
+
+  const isGql = !!(
+    typeof body === "object" &&
+    body.operationName &&
+    body.variables &&
+    body.query
+  );
+  const uri = isGql ? `${originalUrl} - ${body.operationName}` : originalUrl;
+  const message: string = `HTTP request served - ${statusCode} - ${method} - ${uri}`;
   const toLog = {
     message,
     remote_addr: req.ip,
@@ -49,7 +56,7 @@ export const getInfo = (req, res, error?) => {
       time: Date.now() - req.start,
       method,
       hostname: req.hostname,
-      uri: url,
+      uri,
       size: req.socket.bytesRead,
       user_agent: req.headers["user-agent"],
       referer: req.headers["referer"],

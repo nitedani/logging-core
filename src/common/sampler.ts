@@ -13,20 +13,25 @@ export const runSamplers = () => {
   emitter.unbind();
   emitter.bind(SAMPLE_INTERVAL);
 
+  const collect = async () => {
+    const metrics: any = {};
+    // Collect memory info
+    metrics.memory = process.memoryUsage();
+
+    // Collect event loop info
+    const { min, max } = emitter.getLoopMetrics().usage;
+    metrics.loopMetrics = { min, max, avg: (min + max) / 2 };
+
+    // Collect CPU info
+    metrics.cpu = await getCpuLoad();
+
+    return metrics;
+  };
+
   // Every SAMPLE_INTERVAL
   setInterval(() => {
-    // Send memory info
-    _logger.debug!({ memory: process.memoryUsage() });
-
-    const { min, max } = emitter.getLoopMetrics().usage;
-    // Send event loop info
-    _logger.debug!({ loopMetrics: { min, max, avg: (min + max) / 2 } });
-
-    // Send CPU info
-    getCpuLoad((load) => {
-      _logger.debug!({
-        cpu: load,
-      });
+    collect().then((metrics) => {
+      _logger.debug!(metrics);
     });
 
     /*
