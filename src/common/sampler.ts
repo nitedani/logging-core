@@ -1,6 +1,7 @@
 import * as getMetricEmitter from "@newrelic/native-metrics";
 import { getCpuLoad } from "./cpu";
 import { getLogger } from "./storage";
+import { mem } from "systeminformation";
 
 const SAMPLE_INTERVAL = 10000;
 
@@ -16,7 +17,13 @@ export const runSamplers = () => {
   const collect = async () => {
     const metrics: any = {};
     // Collect memory info
-    metrics.memory = process.memoryUsage();
+    const memInfo = await mem();
+    const pmemInfo = process.memoryUsage();
+    metrics.memory = {
+      used: memInfo.used,
+      available: memInfo.available,
+      pUsed: pmemInfo.rss,
+    };
 
     // Collect event loop info
     const { min, max } = emitter.getLoopMetrics().usage;
