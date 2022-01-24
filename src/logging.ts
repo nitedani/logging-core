@@ -5,10 +5,16 @@ import { ctx, getLogger } from "./common/storage";
 //@ts-ignore
 import LokiTransport = require("winston-loki");
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import {
+  BatchSpanProcessor,
+  ConsoleSpanExporter,
+  ReadableSpan,
+  SpanExporter,
+} from "@opentelemetry/sdk-trace-base";
 import { JaegerExporter } from "@opentelemetry/exporter-jaeger";
 import {
   CompositePropagator,
+  ExportResult,
   W3CBaggagePropagator,
   W3CTraceContextPropagator,
 } from "@opentelemetry/core";
@@ -42,6 +48,53 @@ registerInstrumentations({
   instrumentations: [getNodeAutoInstrumentations()],
 });
 
+class MultiExporter implements SpanExporter {
+  exporters: SpanExporter[];
+  constructor(exporters: SpanExporter[]) {
+    this.exporters = exporters;
+  }
+
+  export(
+    spans: ReadableSpan[],
+    resultCallback: (result: ExportResult) => void
+  ): void {
+    for (const exporter of this.exporters) {
+      exporter.export(spans, (args) => {});
+    }
+    resultCallback({ code: 0 });
+  }
+  shutdown(): Promise<void> {
+    return Promise.all(this.exporters.map((e) => e.shutdown())).then(() => {});
+  }
+}
+
+class HttpLokiExporter implements SpanExporter {
+  export(
+    spans: ReadableSpan[],
+    resultCallback: (result: ExportResult) => void
+  ): void {
+    const httpSpans = spans.filter(
+      (span) =>
+        span.instrumentationLibrary.name ===
+        "@opentelemetry/instrumentation-http"
+    );
+    if (httpSpans.length) {
+      const logger = getLogger();
+      for (const span of httpSpans) {
+        logger?.debug(`Outgoing request - ${span.name}`, {
+          traceId: span.spanContext().traceId,
+          ...span.attributes,
+        });
+      }
+    }
+
+    resultCallback({ code: 0 });
+  }
+  shutdown(): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
 export const createTracer = ({
   service_name,
   tempo,
@@ -57,9 +110,12 @@ export const createTracer = ({
       [SemanticResourceAttributes.SERVICE_NAME]: service_name,
     }),
     spanProcessor: new BatchSpanProcessor(
-      new JaegerExporter({
-        endpoint: `${tempo!.host}/api/traces`,
-      })
+      new MultiExporter([
+        new JaegerExporter({
+          endpoint: `${tempo!.host}/api/traces`,
+        }),
+        new HttpLokiExporter(),
+      ])
     ),
     contextManager: new AsyncLocalStorageContextManager(),
     textMapPropagator: new CompositePropagator({
