@@ -32,12 +32,29 @@
   },
   "dependencies": {
     "@newrelic/native-metrics": "^7.1.0",
+    "@opentelemetry/api": "^1.0.4",
+    "@opentelemetry/auto-instrumentations-node": "^0.27.1",
+    "@opentelemetry/context-async-hooks": "^1.0.1",
+    "@opentelemetry/core": "^1.0.1",
+    "@opentelemetry/exporter-jaeger": "^1.0.1",
+    "@opentelemetry/instrumentation": "^0.27.0",
+    "@opentelemetry/propagator-b3": "^1.0.1",
+    "@opentelemetry/propagator-jaeger": "^1.0.1",
+    "@opentelemetry/resources": "^1.0.1",
+    "@opentelemetry/sdk-node": "^0.27.0",
+    "@opentelemetry/sdk-trace-base": "^1.0.1",
+    "@opentelemetry/semantic-conventions": "^1.0.1",
     "cuid": "^2.1.8",
+    "node-graceful": "^3.1.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.5.2",
     "systeminformation": "^5.10.2",
     "winston": "^3.4.0",
     "winston-loki": "^6.0.3"
   },
-  "peerDependencies": {},
+  "peerDependencies": {
+    "graphql": "^16.2.0"
+  },
   "files": [
     "/lib"
   ]

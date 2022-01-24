@@ -1,15 +1,22 @@
+import { context, trace } from "@opentelemetry/api";
 import { ctx } from "./storage";
 
 export class Formatter {
   transform(info, _opts) {
-    const context = ctx();
+    const span = trace.getSpan(context.active());
+    if (span) {
+      const { spanId, traceId } = span.spanContext();
+      Object.assign(info, { spanId, traceId });
+    }
+
+    const _context = ctx();
 
     if (info.level === "error" || info instanceof Error) {
       info = Object.assign({}, getError(info));
     }
 
-    if (context && context.requestId) {
-      info.requestId = context.requestId;
+    if (_context && _context.requestId) {
+      info.requestId = _context.requestId;
     }
 
     if (typeof info.message === "object") {
