@@ -1,12 +1,14 @@
 import * as getMetricEmitter from "@newrelic/native-metrics";
 import { getCpuLoad } from "./cpu";
-import { getLogger } from "./storage";
+import { getLogger, getMetricsTransport } from "./storage";
 import { mem } from "systeminformation";
+import { MESSAGE } from "triple-beam";
 
 const SAMPLE_INTERVAL = 10000;
 
 export const runSamplers = () => {
   const _logger = getLogger()!;
+
   //Set up native sampler
   const emitter = getMetricEmitter({ timeout: SAMPLE_INTERVAL });
 
@@ -38,7 +40,14 @@ export const runSamplers = () => {
   // Every SAMPLE_INTERVAL
   setInterval(() => {
     collect().then((metrics) => {
-      _logger.debug!(metrics);
+      const transport = getMetricsTransport();
+      transport?.log!(
+        {
+          level: "metrics",
+          [MESSAGE]: JSON.stringify(metrics),
+        },
+        () => {}
+      );
     });
 
     /*

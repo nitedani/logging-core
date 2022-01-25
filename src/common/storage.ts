@@ -28,8 +28,14 @@ export const withContext = (_req: Request, _res: Response, next: Function) => {
 };
 
 let _logger: winston.Logger | null = null;
+let _metricsTransport: winston.transport | null = null;
 
 export const getLogger = () => _logger;
 export const setLogger = (logger) => {
   _logger = logger;
+};
+
+export const getMetricsTransport = () => _metricsTransport;
+export const setMetricsTransport = (metricsTransport) => {
+  _metricsTransport = metricsTransport;
 };

@@ -1,13 +1,12 @@
 import * as winston from "winston";
 import { Formatter, getInfo } from "./common/format";
-import { ctx, getLogger } from "./common/storage";
-
+import { ctx, getLogger, setMetricsTransport } from "./common/storage";
+import {} from "triple-beam";
 //@ts-ignore
 import LokiTransport = require("winston-loki");
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import {
   BatchSpanProcessor,
-  ConsoleSpanExporter,
   ReadableSpan,
   SpanExporter,
 } from "@opentelemetry/sdk-trace-base";
@@ -99,6 +98,14 @@ export const createTracer = ({
   service_name,
   tempo,
 }: Pick<Options, "tempo" | "service_name">) => {
+  const exporters = [new HttpLokiExporter()];
+  if (tempo?.host) {
+    exporters.push(
+      new JaegerExporter({
+        endpoint: `${tempo.host}/api/traces`,
+      })
+    );
+  }
   const sdk = new NodeSDK({
     /*
     metricExporter: new PrometheusExporter({
@@ -109,14 +116,7 @@ export const createTracer = ({
     resource: new Resource({
       [SemanticResourceAttributes.SERVICE_NAME]: service_name,
     }),
-    spanProcessor: new BatchSpanProcessor(
-      new MultiExporter([
-        new JaegerExporter({
-          endpoint: `${tempo!.host}/api/traces`,
-        }),
-        new HttpLokiExporter(),
-      ])
-    ),
+    spanProcessor: new BatchSpanProcessor(new MultiExporter(exporters)),
     contextManager: new AsyncLocalStorageContextManager(),
     textMapPropagator: new CompositePropagator({
       propagators: [
@@ -157,15 +157,14 @@ export const createLogger = (options?: Options) => {
       format: winston.format.json(),
       level: level || "debug",
     });
+    setMetricsTransport(lokiTransport);
     transports.push(lokiTransport);
   }
 
-  const logger = winston.createLogger({
+  return winston.createLogger({
     format: new Formatter(),
     transports,
   });
-
-  return logger;
 };
 
 export const logRequestResponse = (req, res) => {
