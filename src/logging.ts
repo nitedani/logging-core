@@ -144,12 +144,12 @@ export const createTracer = ({
   return sdk;
 };
 
-export const createLogger = (options?: Options) => {
+export const createLogger = (options: Options) => {
   const transports: winston.transport[] = [];
-  if (options?.console) {
+  if (options.console) {
     transports.push(consoleTransport);
   }
-  if (options?.loki) {
+  if (options.loki) {
     const { host, labels, level } = options.loki;
     const lokiTransport = new LokiTransport({
       host,
@@ -169,7 +169,7 @@ export const createLogger = (options?: Options) => {
 
 export const logRequestResponse = (req, res) => {
   const logger = getLogger()!;
-  const error = ctx()!.error;
+  const error = ctx()?.error;
   const toLog = getInfo(req, res, error);
 
   if (res.statusCode < 400 && res.statusCode >= 200) {
