@@ -8,5 +8,9 @@ export const getCpuLoad = async () => {
     percents[ind] = cpu.load;
   });
 
-  return { percents, load: load.currentLoad, pLoad: pLoad[0].cpu };
+  return {
+    percents,
+    load: load.currentLoad,
+    pLoad: pLoad[0] ? pLoad[0].cpu : 0,
+  };
 };
