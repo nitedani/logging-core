@@ -72,11 +72,14 @@ class HttpLokiExporter implements SpanExporter {
     spans: ReadableSpan[],
     resultCallback: (result: ExportResult) => void
   ): void {
-    const httpSpans = spans.filter(
-      (span) =>
-        span.instrumentationLibrary.name ===
-        "@opentelemetry/instrumentation-http"
-    );
+    const httpSpans = spans
+      .filter(
+        (span) =>
+          span.instrumentationLibrary.name ===
+          "@opentelemetry/instrumentation-http"
+      )
+      // Filter out spans that belong to an incoming request
+      .filter((span) => !("net.host.ip" in span.attributes));
     if (httpSpans.length) {
       const logger = getLogger();
       for (const span of httpSpans) {
