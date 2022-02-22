@@ -174,14 +174,15 @@ export const logRequestResponse = (req, res) => {
   const logger = getLogger()!;
   const error = ctx()?.error;
   const toLog = getInfo(req, res, error);
+  const withLabel = { ...toLog, labels: { context: "request" } };
 
   if (res.statusCode < 400 && res.statusCode >= 200) {
-    logger.info(toLog);
+    logger.info(withLabel);
   } else {
     if (res.statusCode >= 500) {
-      logger.error(toLog);
+      logger.error(withLabel);
     } else {
-      logger.warn(toLog);
+      logger.warn(withLabel);
     }
   }
 };
