@@ -19,7 +19,6 @@ export class Formatter {
       info.requestId = _context.requestId;
       info.labels = Object.assign({}, info.labels, { context: "request" });
     } else {
-      Object.assign(info, info.labels, { context: "request" });
       info.labels = Object.assign({}, info.labels, { context: "background" });
     }
 
